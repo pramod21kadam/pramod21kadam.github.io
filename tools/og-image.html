@@ -5,86 +5,34 @@
 <title>Share image source</title>
 <!--
   Source for assets/og-image.png (1200 × 630 link-preview image).
-  Regenerate after editing (from the repo root):
+  Regenerate after editing (Chrome needs absolute paths):
     "C:/Program Files/Google/Chrome/Application/chrome.exe" --headless=new --disable-gpu --hide-scrollbars \
-      --window-size=1200,630 --screenshot="assets/og-image.png" "file:///<repo path>/tools/og-image.html"
+      --window-size=1200,630 --screenshot="<repo path>/assets/og-image.png" "file:///<repo path>/tools/og-image.html"
 -->
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 1200px; height: 630px; overflow: hidden; }
   body {
-    position: relative;
-    background: #06090e;
-    color: #eef2f6;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
-  .blob { position: absolute; border-radius: 50%; opacity: 0.55; }
-  .b1 { width: 900px; height: 900px; left: -320px; top: -460px; background: radial-gradient(circle, #0d9488 0%, transparent 62%); }
-  .b2 { width: 900px; height: 900px; right: -380px; top: -120px; background: radial-gradient(circle, #1d4ed8 0%, transparent 62%); }
-  .b3 { width: 800px; height: 800px; left: 260px; bottom: -560px; background: radial-gradient(circle, #7c3aed 0%, transparent 62%); }
-
-  .panel {
-    position: absolute;
-    inset: 64px 72px;
-    padding: 64px 72px;
-    border-radius: 40px;
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 40px 80px -30px rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(30px) saturate(170%);
-    overflow: hidden;
-  }
-  .panel::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, transparent 45%);
-    pointer-events: none;
-  }
-  .eyebrow { font-size: 26px; font-weight: 600; color: #5eead4; margin-bottom: 18px; }
-  h1 { font-size: 84px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.02; }
-  h1 span { display: block; color: #8a96a5; font-size: 52px; margin-top: 14px; letter-spacing: -0.025em; }
-
-  .pipeline {
-    position: absolute;
-    left: 72px; right: 72px; bottom: 64px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    font-family: ui-monospace, Consolas, monospace;
-    font-size: 22px;
+    justify-content: center;
+    text-align: center;
+    background: #ffffff;
+    color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
-  .node {
-    padding: 10px 20px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.07);
-    white-space: nowrap;
-  }
-  .node.on { background: #2dd4bf; border-color: #2dd4bf; color: #042f2e; }
-  .link { flex: 1; height: 2px; margin: 0 10px; background: rgba(255, 255, 255, 0.14); position: relative; }
-  .link::after {
-    content: ""; position: absolute; top: -4px; left: 45%;
-    width: 10px; height: 10px; border-radius: 50%; background: #fbbf24;
-  }
-  .url {
-    position: absolute; top: 64px; right: 72px;
-    font-size: 22px; color: #a7b1bd;
-  }
+  .role { font-size: 34px; font-weight: 600; color: #6e6e73; }
+  h1 { margin-top: 8px; font-size: 128px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.02; }
+  .stack { margin-top: 28px; font-size: 32px; font-weight: 500; color: #6e6e73; }
+  .url { position: absolute; bottom: 48px; font-size: 24px; color: #0066cc; }
 </style>
 </head>
 <body>
-  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
-  <div class="panel">
-    <p class="url">pramod21kadam.github.io</p>
-    <p class="eyebrow">Data Engineer</p>
-    <h1>Pramod Kadam.<span>I build data pipelines that scale.</span></h1>
-    <div class="pipeline">
-      <span class="node">Sources</span><span class="link"></span>
-      <span class="node">Ingest</span><span class="link"></span>
-      <span class="node on">Transform</span><span class="link"></span>
-      <span class="node">Load</span><span class="link"></span>
-      <span class="node">Serve</span>
-    </div>
-  </div>
+  <p class="role">Senior Data Engineer at Accenture</p>
+  <h1>Pramod Kadam</h1>
+  <p class="stack">Apache Spark · Hadoop · Google Cloud</p>
+  <p class="url">pramod21kadam.github.io</p>
 </body>
 </html>

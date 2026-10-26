@@ -5,7 +5,12 @@
  *
  *  Everything visible on the page (except <head> metadata in index.html) comes
  *  from the SITE object below. You never need to touch script.js or index.html
- *  to add a skill, a job, a project or a whole new section.
+ *  to add a skill, a role, a case study or a whole new section.
+ *  Terms used here (intro strip, role, level, case study, recognition) are
+ *  defined in CONTEXT.md.
+ *
+ *  Only write what you can defend in an interview: real scale, real problems,
+ *  real results. No numbers you can't stand behind.
  *
  *  Text placeholders (work in any string):
  *    {years}  -> completed years of experience since profile.careerStart
@@ -14,12 +19,15 @@
  *  Section types (set `type` on each entry in `sections`):
  *    "text"      { paragraphs: ["...", "..."] }
  *    "tags"      { groups: [{ name: "Group", items: ["A", "B"] }] }      -> grouped list
- *    "cards"     { items: [{ title, label, summary, tags: [], links: [{ label, url }], featured }],
- *                  moreTitle: "..." }
- *                -> items with `featured: true` become large glass cards;
- *                   the rest are listed compactly under `moreTitle`
- *    "timeline"  { items: [{ title, org, period, points: [] }] }
- *    "contact"   { intro: "..." }  -> renders profile.links as contact cards
+ *    "timeline"  { items: [Role] }  -> roles / education, most recent first
+ *                Role = {
+ *                  title, org, level, period,
+ *                  summary: "...",                       optional
+ *                  caseStudies: [{ title, scale, body, stack: [] }],
+ *                  recognition: [{ name, year, note }],
+ *                  notes: ["..."],                       short plain lines (e.g. CGPA)
+ *                }
+ *    "contact"   { intro: "..." }  -> renders profile.links
  *
  *  Common section fields:
  *    id      unique, used for the URL anchor (#id) — lowercase, no spaces
@@ -34,7 +42,8 @@
 const SITE = {
   profile: {
     name: "Pramod Kadam",
-    role: "Data Engineer",
+    title: "Senior Data Engineer",
+    employer: "Accenture",
     // First working day; {years} is calculated from this (YYYY-MM-DD).
     careerStart: "2021-08-19",
     // null = count up to today. Set a date (YYYY-MM-DD) to freeze the count.
@@ -46,41 +55,67 @@ const SITE = {
     ],
   },
 
-  hero: {
-    eyebrow: "Data Engineer",
-    // Shown after the name in a softer colour.
-    headline: "I build data pipelines that scale.",
-    lede: "{years}+ years designing ETL workflows and big data processing with Apache Spark, Hadoop, SQL and Python, on-premise and on Google Cloud.",
-    actions: [
-      { label: "View projects", href: "#projects", primary: true },
-      { label: "Get in touch", href: "#contact" },
-    ],
-    // Glass panel next to the headline.
-    panelLabel: "Data flow",
-    // Each stage is clickable/hoverable and reveals its tools. A plain string ("Ingest") also works.
-    pipeline: [
-      { stage: "Sources", tools: ["MySQL", "NoSQL", "HDFS", "Cloud Storage"] },
-      { stage: "Ingest", tools: ["Python", "Cloud Functions", "Airflow", "Control-M"] },
-      { stage: "Transform", tools: ["Apache Spark (PySpark)", "Spark SQL", "Hive", "Dataproc"], selected: true },
-      { stage: "Load", tools: ["Hive", "BigQuery", "Data Lake", "Star / Snowflake schema"] },
-      { stage: "Serve", tools: ["BigQuery", "Impala", "SQL"] },
-    ],
-    facts: [
-      { label: "Experience", value: "{years}+ years" },
-      { label: "Core stack", value: "Spark · Hadoop · Python" },
-      { label: "Cloud", value: "Google Cloud" },
-      { label: "Status", value: "Open to opportunities" },
+  // The intro strip at the top of the page. The eyebrow ("<title> at <employer>")
+  // and the headline (profile.name) come from `profile`.
+  intro: {
+    summary: "Building batch data pipelines on Apache Spark and Hadoop since 2021. Now leading development on a migration from on-premise Hadoop to Google Cloud.",
+    // Data-flow animation under the summary: raw records -> transform -> rows -> warehouse.
+    // `stages` are the four captions under it, in that order. Remove `flow` to hide the animation.
+    flow: {
+      stages: ["Raw records", "Transform", "Structured rows", "Warehouse"],
+    },
+    // Key figures: big numbers under the intro. Every one must be true and confirmed.
+    // Numbers under 1000 count up when scrolled into view; years stay as they are.
+    figures: [
+      { value: "{years}+", label: "years in data engineering" },
+      { value: "500 GB+", label: "per run through the Spark pipelines I built at TCS" },
+      { value: "~30", label: "batch jobs moving to Google Cloud, with me leading development" },
+      { value: "2026", label: "Blue Box Award, Accenture" },
     ],
   },
 
   sections: [
     {
-      id: "about",
-      title: "About",
-      type: "text",
-      paragraphs: [
-        "I design, develop and maintain scalable data pipelines for enterprise solutions. At Tata Consultancy Services I worked as an Apache Spark developer, building ETL processes for data ingestion, transformation and big data processing, and troubleshooting existing applications to improve data quality and reliability.",
-        "I enjoy architecting data platforms for efficient storage and processing, and working with cross-functional teams of developers, data scientists and business analysts in an agile environment. I'm looking for data engineering roles where I can apply cloud and big data frameworks to support data-driven decisions.",
+      id: "experience",
+      title: "Experience",
+      type: "timeline",
+      items: [
+        {
+          title: "Senior Data Engineer",
+          org: "Accenture",
+          level: "Senior Analyst",
+          period: "Sep 2025 – Present",
+          caseStudies: [
+            {
+              title: "On-premise to Google Cloud migration",
+              scale: "~30 jobs · ~500 GB tables",
+              body: "Team lead for development on the migration of batch jobs from an on-premise Hadoop / Hive platform to Google Cloud, with Spark processing moving to Dataproc and storage to BigQuery.",
+              stack: ["Spark", "Hive", "Dataproc", "BigQuery"],
+            },
+          ],
+          recognition: [
+            { name: "Blue Box Award", year: "2026", note: "Accenture award for exceptional contribution" },
+          ],
+        },
+        {
+          title: "Apache Spark Developer (Data Engineer)",
+          org: "Tata Consultancy Services",
+          period: "Aug 2021 – Sep 2025",
+          caseStudies: [
+            {
+              title: "MIS — Management Information System",
+              scale: "500–600 GB per run",
+              body: "Led the design of a pipeline that collects financial data from multiple sources and delivers it, structured, to end customers. Built the Spark jobs for transformation, cleansing and enrichment, and tuned long-running jobs to bring down runtime and compute cost.",
+              stack: ["PySpark", "Spark SQL", "Hadoop", "Hive"],
+            },
+            {
+              title: "SDP — Standard Data Protocol",
+              scale: "40–150 GB per run",
+              body: "Worked on a Python ETL tool built on Spark and Hadoop that transforms and moves data between data stores. Wrote custom data-mapping protocols for structured and unstructured data, and mentored new team members on the tool.",
+              stack: ["Python", "Spark", "Hadoop"],
+            },
+          ],
+        },
       ],
     },
     {
@@ -88,75 +123,11 @@ const SITE = {
       title: "Skills",
       type: "tags",
       groups: [
-        { name: "Languages", items: ["Python", "Java", "SQL", "Spark SQL"] },
-        { name: "Processing", items: ["Apache Spark (PySpark)", "Hadoop", "Hive", "Impala"] },
-        { name: "Storage & Modelling", items: ["HDFS", "Data Lake", "Star / Snowflake schema", "MySQL", "NoSQL"] },
-        { name: "Cloud · GCP", items: ["BigQuery", "Cloud Storage", "Cloud Functions", "Dataproc"] },
-        { name: "Orchestration & Ops", items: ["Airflow", "Control-M", "Splunk", "Linux"] },
-        { name: "Tooling & Practice", items: ["Git", "Bitbucket", "JIRA", "ETL development", "Data mapping", "Performance tuning", "Agile", "Mentoring"] },
-      ],
-    },
-    {
-      id: "projects",
-      title: "Projects",
-      type: "cards",
-      moreTitle: "Personal projects",
-      items: [
-        {
-          title: "MIS — Management Information System",
-          label: "Work · TCS",
-          featured: true,
-          summary: "Led the design and implementation of a data pipeline that collects, integrates, stores and organises financial data from multiple sources. Built and optimised Apache Spark jobs for transformation, cleansing and enrichment, and delivered structured data to end customers.",
-          tags: ["Apache Spark", "ETL"],
-          links: [],
-        },
-        {
-          title: "SDP — Standard Data Protocol",
-          label: "Work · TCS",
-          featured: true,
-          summary: "Worked on a Python ETL tool built on Apache Spark and Hadoop for transforming and transferring data between data stores. Developed custom data mapping protocols for structured and unstructured data and mentored new team members.",
-          tags: ["Python", "Apache Spark", "Hadoop"],
-          links: [],
-        },
-        {
-          title: "Anonymous Chat Platform",
-          label: "Personal",
-          summary: "A real-time web application for anonymous conversations, with a Flask back-end and a Vue.js front-end.",
-          tags: ["Python", "Flask", "Vue.js"],
-          links: [], // TODO: [{ label: "Source", url: "https://github.com/pramod21kadam/<repo>" }]
-        },
-        {
-          title: "Digital Token System for Wine Shops",
-          label: "Personal",
-          summary: "A crowd-management solution to regulate customer flow at wine shops during the COVID-19 pandemic and reduce congestion.",
-          tags: [],
-          links: [], // TODO: add GitHub repository link
-        },
-        {
-          title: "Plant Disease Identification App",
-          label: "Personal",
-          summary: "A web-based tool that uses image recognition to identify plant species and diagnose diseases early.",
-          tags: ["Image recognition"],
-          links: [], // TODO: add GitHub repository link
-        },
-      ],
-    },
-    {
-      id: "experience",
-      title: "Experience",
-      type: "timeline",
-      items: [
-        {
-          title: "Apache Spark Developer (Data Engineer)",
-          org: "Tata Consultancy Services",
-          period: "Aug 2021 – Sep 2025",
-          points: [
-            "Designed and executed scalable data architectures for data collection, processing and analysis.",
-            "Developed automated ETL workflows for data ingestion, transformation and real-time processing.",
-            "Applied data governance and security measures in line with standards and regulations.",
-            "Monitored and optimised data systems for availability, performance and reliability.",
-          ],
-        },
+        { name: "Processing", items: ["Apache Spark (PySpark, Spark SQL)", "Hadoop", "Hive", "Impala"] },
+        { name: "Google Cloud", items: ["Dataproc", "BigQuery", "Cloud Storage", "Cloud Functions"] },
+        { name: "Languages", items: ["Python", "SQL", "Java"] },
+        { name: "Orchestration & ops", items: ["Airflow", "Control-M", "Splunk", "Linux", "Git"] },
+        { name: "Modelling", items: ["Data lake", "Star / snowflake schema", "Data mapping"] },
       ],
     },
     {
@@ -168,13 +139,12 @@ const SITE = {
           title: "B.E. in Computer Engineering",
           org: "Sinhgad Academy of Engineering, Pune University",
           period: "2017 – 2021",
-          points: ["CGPA: 8.75 / 10"],
+          notes: ["CGPA 8.75 / 10"],
         },
         {
           title: "Higher Secondary Certificate (Science)",
           org: "Nowrosjee Wadia College, Pune",
           period: "2016 – 2017",
-          points: [],
         },
       ],
     },
@@ -182,7 +152,7 @@ const SITE = {
       id: "contact",
       title: "Contact",
       type: "contact",
-      intro: "Open to data engineering roles and collaborations. The quickest way to reach me is by email or LinkedIn.",
+      intro: "Email is the quickest way to reach me.",
     },
   ],
 };
