@@ -26,6 +26,8 @@
   --solid-surface: #ffffff;
   /* Dropdown sits inside the glass nav, where nested backdrop blur can't sample the page */
   --menu-bg: #ffffff;
+  --spot-color: rgba(255, 255, 255, 0.5);
+  --rim-color: rgba(15, 118, 110, 0.9);
 
   /* Backdrop colour fields */
   --blob-1: #5eead4;
@@ -56,8 +58,10 @@
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+/* Dark tokens apply when the system is dark (unless the visitor picked light),
+   or when the visitor picked dark with the theme toggle. Keep both blocks in sync. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #06090e;
     --text: #eef2f6;
     --muted: #a7b1bd;
@@ -78,6 +82,8 @@
     --hairline: rgba(255, 255, 255, 0.09);
     --solid-surface: #111821;
     --menu-bg: #0e131a;
+    --spot-color: rgba(255, 255, 255, 0.07);
+    --rim-color: rgba(255, 255, 255, 0.8);
 
     --blob-1: #0d9488;
     --blob-2: #1d4ed8;
@@ -85,6 +91,37 @@
     --blob-opacity: 0.38;
   }
 }
+:root[data-theme="dark"] {
+  --bg: #06090e;
+  --text: #eef2f6;
+  --muted: #a7b1bd;
+  --subtle: #8a96a5;
+  --accent: #5eead4;
+  --btn-bg: #2dd4bf;
+  --btn-text: #042f2e;
+  --flow: #fbbf24;
+
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-bg-strong: rgba(16, 22, 30, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-edge: rgba(0, 0, 0, 0.35);
+  --glass-highlight: rgba(255, 255, 255, 0.2);
+  --glass-sheen: rgba(255, 255, 255, 0.08);
+  --shadow: rgba(0, 0, 0, 0.55);
+  --chip-bg: rgba(255, 255, 255, 0.07);
+  --hairline: rgba(255, 255, 255, 0.09);
+  --solid-surface: #111821;
+  --menu-bg: #0e131a;
+  --spot-color: rgba(255, 255, 255, 0.07);
+  --rim-color: rgba(255, 255, 255, 0.8);
+
+  --blob-1: #0d9488;
+  --blob-2: #1d4ed8;
+  --blob-3: #7c3aed;
+  --blob-opacity: 0.38;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 /* ==========================================================================
    Base
@@ -224,6 +261,30 @@ main:focus { outline: none; }
   pointer-events: none;
 }
 
+/* Pointer-following light (class added by script.js on mouse devices only):
+   a soft glow on the surface plus a brighter rim where the pointer is. */
+.glass-lit::before {
+  background:
+    radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), var(--spot, transparent), transparent 45%),
+    linear-gradient(135deg, var(--glass-sheen) 0%, transparent 42%);
+}
+.glass-lit.is-lit { --spot: var(--spot-color); }
+.glass-lit::after {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), var(--rim-color), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+  pointer-events: none;
+}
+.glass-lit.is-lit::after { opacity: 1; }
+
 /* Fallback when backdrop blur is unavailable, or the OS asks for less transparency */
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .glass { background: var(--glass-bg-strong); }
@@ -273,6 +334,34 @@ main:focus { outline: none; }
 }
 .brand:hover { text-decoration: none; }
 .brand-mark { font-family: var(--font-mono); color: var(--accent); font-size: 0.9em; }
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  color: var(--text);
+  background: var(--chip-bg);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease);
+}
+.theme-toggle:hover { background: var(--hairline); }
+.theme-toggle svg { width: 18px; height: 18px; }
+/* Show the icon of the theme you would switch TO */
+.theme-toggle .icon-sun { display: none; }
+:root[data-theme-active="dark"] .theme-toggle .icon-sun { display: block; }
+:root[data-theme-active="dark"] .theme-toggle .icon-moon { display: none; }
+.no-js .theme-toggle { display: none; }
 
 .nav-toggle {
   display: inline-flex;
@@ -450,14 +539,30 @@ main:focus { outline: none; }
 .pipeline-node {
   flex: none;
   padding: 0.35rem 0.6rem;
+  font: inherit;
   color: var(--text);
   background: var(--chip-bg);
   border: 1px solid var(--hairline);
   border-radius: 999px;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
 }
-.pipeline-node:first-child,
-.pipeline-node:last-child { color: var(--accent); border-color: var(--accent); }
+.pipeline-node:hover { border-color: var(--accent); }
+.pipeline-node[aria-pressed="true"] {
+  color: var(--btn-text);
+  background: var(--btn-bg);
+  border-color: var(--btn-bg);
+}
+
+.pipeline-detail {
+  min-height: 3.2em;
+  margin: var(--space-4) 0 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.pipeline-detail strong { color: var(--text); font-weight: 600; }
 
 .pipeline-link {
   position: relative;
@@ -689,6 +794,7 @@ main:focus { outline: none; }
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
+  .nav-menu { margin-left: auto; margin-right: var(--space-2); }
   .nav-menu a { padding: 0.45rem 0.95rem; border-radius: 999px; font-size: 0.9rem; }
 }
 
@@ -717,4 +823,113 @@ main:focus { outline: none; }
   .backdrop span { animation: none; }
   .js-reveal .reveal { opacity: 1; transform: none; }
   .pipeline-link::after { animation: none; opacity: 0.9; left: calc(50% - 2px); }
+}
+
+/* ==========================================================================
+   Print / Save as PDF — a clean one-column résumé
+   ========================================================================== */
+@media print {
+  @page { margin: 14mm 16mm; }
+
+  /* Repeated :root raises specificity above the dark-theme selectors, so print is always black on white */
+  :root:root:root {
+    --bg: #ffffff;
+    --text: #000000;
+    --muted: #222222;
+    --subtle: #555555;
+    --accent: #0f5c56;
+    --hairline: #cccccc;
+    --chip-bg: transparent;
+  }
+
+  html { scroll-behavior: auto; }
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  .backdrop,
+  .site-header,
+  .skip-link,
+  .hero-actions,
+  .hero-panel,
+  .site-footer,
+  .card-links { display: none !important; }
+
+  .container { max-width: none; padding: 0; }
+
+  /* Contact details right after the name, as on a résumé */
+  main { display: flex; flex-direction: column; }
+  #top { order: -2; }
+  #contact { order: -1; }
+
+  .glass {
+    background: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+  .glass::before,
+  .glass::after { display: none !important; }
+
+  .js-reveal .reveal { opacity: 1 !important; transform: none !important; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+
+  .hero { display: block; padding: 0 0 6pt; }
+  .eyebrow { margin-bottom: 2pt; font-size: 10pt; }
+  .hero-title { font-size: 22pt; letter-spacing: -0.01em; margin-bottom: 4pt; }
+  .hero-sub { display: block; font-size: 12pt; font-weight: 400; color: #444444; margin-top: 2pt; }
+  .hero-lede { font-size: 10.5pt; max-width: none; margin-bottom: 0; }
+
+  .section { padding: 8pt 0 0; }
+  .section-title {
+    font-size: 12.5pt;
+    margin-bottom: 4pt;
+    padding-bottom: 2pt;
+    border-bottom: 1px solid #000000;
+  }
+  .prose { font-size: 10.5pt; max-width: none; }
+  .prose p { margin-bottom: 4pt; }
+
+  /* Contact as one compact line */
+  #contact .prose { display: none; }
+  #contact .section-title { display: none; }
+  .contact-list { display: flex; flex-wrap: wrap; gap: 2pt 14pt; margin: 0; }
+  .contact-link { padding: 0; display: inline; color: #000000; }
+  .contact-label { color: #555555; font-size: 9.5pt; margin-right: 4pt; }
+  .contact-label::after { content: ":"; }
+  .contact-value { font-size: 10pt; }
+
+  .skill-list,
+  .compact-list,
+  .timeline { max-width: none; }
+  .skill-row,
+  .compact-item,
+  .timeline-item {
+    grid-template-columns: 40mm 1fr;
+    column-gap: 6mm;
+    padding-block: 3pt;
+    border: 0 !important;
+    break-inside: avoid;
+  }
+  .tag-list { gap: 0; }
+  .tag-list li { padding: 0; background: none; font-size: 10pt; font-weight: 400; }
+  .tag-list li:not(:last-child)::after { content: ","; margin-right: 4pt; }
+
+  .card-grid { display: block; }
+  .card { padding: 0 0 5pt; break-inside: avoid; }
+  .card-title { font-size: 11pt; margin-bottom: 1pt; }
+  .card-label { margin: 0; font-size: 9pt; }
+  .card-summary { font-size: 10.5pt; margin-bottom: 2pt; }
+  .subhead { font-size: 11pt; margin: 4pt 0 2pt; }
+
+  .timeline-period { font-size: 9.5pt; }
+  .timeline-role { font-size: 11pt; }
+  .timeline-org { margin: 0 0 2pt; }
+  .timeline-points li { margin-bottom: 1pt; }
+
+  a { color: inherit; text-decoration: none; }
 }

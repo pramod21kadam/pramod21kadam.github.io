@@ -57,7 +57,14 @@ const SITE = {
     ],
     // Glass panel next to the headline.
     panelLabel: "Data flow",
-    pipeline: ["Sources", "Ingest", "Transform", "Load", "Serve"],
+    // Each stage is clickable/hoverable and reveals its tools. A plain string ("Ingest") also works.
+    pipeline: [
+      { stage: "Sources", tools: ["MySQL", "NoSQL", "HDFS", "Cloud Storage"] },
+      { stage: "Ingest", tools: ["Python", "Cloud Functions", "Airflow", "Control-M"] },
+      { stage: "Transform", tools: ["Apache Spark (PySpark)", "Spark SQL", "Hive", "Dataproc"], selected: true },
+      { stage: "Load", tools: ["Hive", "BigQuery", "Data Lake", "Star / Snowflake schema"] },
+      { stage: "Serve", tools: ["BigQuery", "Impala", "SQL"] },
+    ],
     facts: [
       { label: "Experience", value: "{years}+ years" },
       { label: "Core stack", value: "Spark · Hadoop · Python" },

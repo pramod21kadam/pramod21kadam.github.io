@@ -12,6 +12,10 @@ No build step, no frameworks, no external requests, no tracking — designed for
 ├── index.html     # Page shell, <head> metadata (SEO / social preview), no-JS fallback
 ├── style.css      # Design tokens, theme, layout, reduced-motion handling
 ├── favicon.svg    # Site icon
+├── assets/
+│   └── og-image.png   # 1200×630 link-preview image (LinkedIn, WhatsApp, X …)
+├── tools/
+│   └── og-image.html  # Source for og-image.png (see "Share preview image")
 ├── 404.html       # Custom not-found page (served by GitHub Pages)
 ├── .nojekyll      # Tells GitHub Pages to serve files as-is (skip Jekyll)
 └── README.md
@@ -119,7 +123,31 @@ deleting it. To support a brand-new layout, add a function to the `renderers` ob
   element to make it a glass panel. Glass becomes solid when the OS asks for reduced transparency
   or the browser lacks `backdrop-filter`.
 - The hero glass panel is configured in `content.js` (`hero.panelLabel`, `hero.pipeline`,
-  `hero.facts`).
+  `hero.facts`). Each pipeline stage is `{ stage, tools: [...] }`; hovering, tapping or tabbing to
+  a stage shows its tools. `selected: true` picks the stage shown first.
+- **Theme toggle:** the sun/moon button in the nav switches light/dark and remembers the choice in
+  the visitor's browser. With no saved choice the site follows the system setting. Dark colours
+  appear twice in `style.css` (system-dark block and `[data-theme="dark"]` block) — keep them in sync.
+- **Pointer light:** on mouse devices the rim of glass cards lights up under the cursor
+  (`--spot-color`, `--rim-color` tokens). It is off on touch screens and for reduced motion.
+
+### Print / Save as PDF
+
+Printing the page (Ctrl/Cmd + P → *Save as PDF*) produces a plain black-on-white résumé: name,
+contact line, about, skills, projects, experience and education. The glass effects, navigation,
+buttons and hero panel are hidden. Print styles are the `@media print` block at the end of
+`style.css`.
+
+### Share preview image
+
+`assets/og-image.png` is what LinkedIn, WhatsApp, X and others show when the URL is shared. Its
+source is `tools/og-image.html`; edit that, then regenerate the PNG with Chrome from the repo root:
+
+```bash
+"C:/Program Files/Google/Chrome/Application/chrome.exe" --headless=new --disable-gpu --hide-scrollbars --window-size=1200,630 --screenshot="assets/og-image.png" "file:///D:/workspace/pramod21kadam.github.io/tools/og-image.html"
+```
+
+LinkedIn caches previews; after changing the image, refresh it with LinkedIn's Post Inspector.
 - Search/social metadata (title, description, canonical URL, JSON-LD) lives in the `<head>` of
   `index.html` — update it if your name, URL or headline changes. The small no-JavaScript
   fallback inside `<main>` is there too.

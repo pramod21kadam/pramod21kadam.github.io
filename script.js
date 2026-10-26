@@ -89,22 +89,53 @@
    * Hero
    * ------------------------------------------------------------------------- */
 
-  function renderPipeline(stages) {
+  /** Pipeline of stage buttons; hovering, focusing or pressing one shows its tools below. */
+  function renderPipeline(rawStages) {
+    const stages = rawStages.map(function (s) {
+      return typeof s === "string" ? { stage: s, tools: [] } : s;
+    });
+    const fragment = document.createDocumentFragment();
+
     const wrap = el("div", "pipeline");
-    wrap.setAttribute("role", "img");
-    wrap.setAttribute("aria-label", "Data pipeline: " + stages.join(" to "));
-    stages.forEach(function (stage, i) {
+    wrap.setAttribute("role", "group");
+    wrap.setAttribute("aria-label", "Data pipeline stages");
+
+    const detail = el("p", "pipeline-detail");
+    detail.id = "pipeline-detail";
+    detail.setAttribute("aria-live", "polite");
+
+    const buttons = [];
+    function select(index) {
+      buttons.forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === index)); });
+      const s = stages[index];
+      detail.replaceChildren();
+      detail.appendChild(el("strong", "", s.stage));
+      detail.append(s.tools && s.tools.length ? " — " + s.tools.map(fill).join(", ") : "");
+    }
+
+    stages.forEach(function (s, i) {
       if (i > 0) {
         const pipe = el("span", "pipeline-link");
         pipe.setAttribute("aria-hidden", "true");
         pipe.style.setProperty("--i", String(i - 1));
         wrap.appendChild(pipe);
       }
-      const node = el("span", "pipeline-node", stage);
-      node.setAttribute("aria-hidden", "true");
-      wrap.appendChild(node);
+      const btn = el("button", "pipeline-node", s.stage);
+      btn.type = "button";
+      btn.setAttribute("aria-controls", detail.id);
+      btn.addEventListener("click", function () { select(i); });
+      btn.addEventListener("focus", function () { select(i); });
+      btn.addEventListener("pointerenter", function (e) { if (e.pointerType === "mouse") select(i); });
+      buttons.push(btn);
+      wrap.appendChild(btn);
     });
-    return wrap;
+
+    const initial = Math.max(0, stages.findIndex(function (s) { return s.selected; }));
+    select(initial);
+
+    fragment.appendChild(wrap);
+    fragment.appendChild(detail);
+    return fragment;
   }
 
   function renderFacts(facts) {
@@ -362,6 +393,43 @@
     });
   }
 
+  /**
+   * Light/dark toggle. With no saved choice the site follows the system setting;
+   * pressing the button saves the visitor's choice in localStorage.
+   */
+  function setupThemeToggle() {
+    const button = document.querySelector(".theme-toggle");
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+    const metas = document.querySelectorAll('meta[name="theme-color"]');
+
+    function effectiveTheme() {
+      const chosen = root.getAttribute("data-theme");
+      if (chosen === "light" || chosen === "dark") return chosen;
+      return systemDark.matches ? "dark" : "light";
+    }
+
+    function sync() {
+      const theme = effectiveTheme();
+      root.setAttribute("data-theme-active", theme);
+      if (button) button.setAttribute("aria-label", theme === "dark" ? "Switch to light theme" : "Switch to dark theme");
+      if (root.hasAttribute("data-theme")) {
+        const bg = getComputedStyle(root).getPropertyValue("--bg").trim();
+        metas.forEach(function (m) { m.setAttribute("content", bg); });
+      }
+    }
+
+    if (button) {
+      button.addEventListener("click", function () {
+        const next = effectiveTheme() === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        try { localStorage.setItem("theme", next); } catch (e) { /* storage unavailable: choice lasts this visit */ }
+        sync();
+      });
+    }
+    systemDark.addEventListener("change", sync);
+    sync();
+  }
+
   /** Make the floating nav a little more opaque once the page scrolls. */
   function setupHeaderScroll() {
     const header = document.querySelector(".site-header");
@@ -415,6 +483,21 @@
     document.querySelectorAll(".reveal").forEach(function (node) { observer.observe(node); });
   }
 
+  /** Glass edge light that follows the mouse (desktop pointers only, not for reduced motion). */
+  function setupGlassLight() {
+    if (prefersReducedMotion || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    document.querySelectorAll(".card, .contact-link, .hero-panel").forEach(function (node) {
+      node.classList.add("glass-lit");
+      node.addEventListener("pointermove", function (e) {
+        const rect = node.getBoundingClientRect();
+        node.style.setProperty("--mx", (e.clientX - rect.left) + "px");
+        node.style.setProperty("--my", (e.clientY - rect.top) + "px");
+      });
+      node.addEventListener("pointerenter", function () { node.classList.add("is-lit"); });
+      node.addEventListener("pointerleave", function () { node.classList.remove("is-lit"); });
+    });
+  }
+
   function setYear() {
     const year = document.getElementById("year");
     if (year) year.textContent = String(new Date().getFullYear());
@@ -422,7 +505,9 @@
 
   renderPage();
   setupNav();
+  setupThemeToggle();
   setupHeaderScroll();
+  setupGlassLight();
   setupActiveSection();
   setupReveal();
   setYear();
