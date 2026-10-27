@@ -11,15 +11,13 @@ Read `CONTEXT.md` before changing content or layout. It defines the terms used f
 ## Product decisions (agreed with Pramod, Oct 2026)
 
 - **Readers.** Recruiters skim the page; data engineering hiring managers judge the depth of the work. Pramod is employed and **not job-hunting**, so the page has no "open to opportunities", no "hire me" calls to action, and no location.
-- **Look.** Apple product-page style (Pramod asked for this after a plain résumé look felt tasteless):
-  - big bold system type, a centred intro and a key-figures band
-  - rounded tiles for case studies and skills, alternating `--bg`/`--bg-alt` section bands
-  - blue links with chevrons, a thin translucent nav, and a gentle fade-up on scroll (off for reduced motion)
-  - Pramod also asked for data-themed motion and a minimal background. The intro has a faint dot grid and a soft accent glow, a canvas animation where raw records pass through a transform stage, become rows, and are stored in a warehouse cylinder, and key figures that count up.
-
-  Keep it restrained. Do not add gradient blobs, glassy cards, extra decorative widgets or Apple branding.
+- **Look.** An illustrated, warm, story-led page. Pramod pointed at anubhuti.design (via wallofportfolios.in) as the flow to follow, after the Apple-style and dark "observatory" versions felt soulless. Follow its *flow*, never its artwork or copy. `DESIGN.md` has the full system. In short:
+  - The page is one world: on-premise Hadoop is a warehouse on a floating island, Google Cloud is a building in the clouds, and data parcels ride a pipe between them. The page moves from dawn (the intro) to night (contact).
+  - Full-screen illustrated intro with a big bold claim; scrolling zooms into the clouds. Then a work carousel of illustrated cards, a timeline with big outlined years, About with floating trait pills, and a night-time contact with a "send the packet" interaction.
+  - All artwork is hand-written SVG in `index.html`. No raster illustrations, no portrait (none supplied), no dark theme.
+- **Personal touches need Pramod's facts.** The reference site's charm comes from personal details (hobbies, opinions, a portrait). Add them only when Pramod supplies them; never invent a hobby, an opinion or a quote.
 - **Copy.** Write only specifics Pramod has confirmed. Never invent numbers or results. Generic lines like "designed scalable data architectures" are exactly what this redesign removed.
-- **Projects.** Work lives inside each role as case studies, so there is no separate Projects section. The three old college projects were removed. A personal project comes back only if it is real data engineering work with a public repo.
+- **Projects.** Case studies are the cards in Selected work; each names its role's employer and dates. The three old college projects were removed. A personal project comes back only if it is real data engineering work with a public repo.
 
 ## Running locally
 
@@ -33,26 +31,21 @@ python -m http.server 8765
 
 - **`content.js` holds all page content.** It defines a global `SITE` object with three parts:
   - `profile`: name, title, employer, career dates and links
-  - `intro`: the summary and key figures (`figures`) shown in the intro strip
-  - `sections[]`: everything below the intro strip
+  - `intro`: the headline, summary and scroll hint of the full-screen scene
+  - `sections[]`: everything below it (`work`, `path`, `about`, `contact`)
 
   The comment block at the top of the file documents every field.
 - **`script.js` is the renderer.** It's an IIFE that reads `SITE` and replaces everything inside `<main>` and the nav menu. Load order matters: `content.js` must come before `script.js` (both `defer`).
-  - `renderIntro` builds the intro strip and `renderFigures` builds the key-figures band.
-  - Each section's `type` maps to a function in `renderers` (`text`, `tags`, `timeline`, `contact`). `timeline` renders both roles and education. A role's `caseStudies` and `recognition` become tiles through the shared `tile()` helper.
-  - Each section gets the class `section-<type>`, which CSS uses for the alternating bands.
-  - `setupFlow` draws the data-flow canvas (`intro.flow`).
-    - Colours are read from the CSS tokens and re-read when `data-theme-active` changes.
-    - It pauses when the canvas is off-screen or the tab is hidden.
-    - For reduced motion it draws a single still frame.
-  - `setupCountUp` animates key figures below 1000. Screen readers get the final value through a visually hidden copy.
-  - Elements with the class `.reveal` fade in through `setupReveal`. The pane's screenshots can catch them mid-fade, or blank while the pane is hidden. To check the layout, use headless Chrome with `--force-prefers-reduced-motion`.
-  - `fill()` replaces the `{years}` and `{name}` placeholders. `{years}` is the number of completed years since `profile.careerStart`.
-  - The DOM is built with `textContent` and `createElement` only, never `innerHTML`.
-- **`index.html` needs hand-updating.** Its `<head>` metadata (title, description, OG/Twitter tags, JSON-LD with `worksFor`) and its no-JS fallback inside `<main>` are not generated from `content.js`. When the title or employer changes, update them, and also update `tools/og-image.html`. An inline script in `<head>` applies the saved `localStorage.theme` before first paint.
+  - `renderStage` builds the scene; each section's `type` maps to a function in `renderers` (`work`, `path`, `about`, `contact`). Each section gets the class `section <type>`.
+  - `art(name)` clones an `<svg data-art="name">` from the `<template id="art">` in `index.html`. That keeps the no-`innerHTML` rule and lets `style.css` animate inside the drawings.
+  - `setupStage` pins the scene and sets `--p` (0 to 1) on scroll; CSS zooms and fades from it. `setupParcels` moves parcels along `.hero-pipe` and pauses off-screen. `setupContact` sends the packet and copies the email.
+  - Reduced motion: no pinning, no zoom, parcels stand still, no reveal. Check layouts with headless Chrome and `--force-prefers-reduced-motion`. Headless virtual time doesn't run `requestAnimationFrame`, so shim it in a test copy when scripting interactions.
+  - `fill()` replaces `{years}`, `{name}` and `{email}`; `rich()` turns `**text**` into `<strong>`.
+  - The DOM is built with `textContent`, `createElement` and template clones only, never `innerHTML`.
+- **`index.html` needs hand-updating.** Its `<head>` metadata (title, description, OG/Twitter tags, JSON-LD with `worksFor`) its no-JS fallback inside `<main>` and the artwork `<template>` are not generated from `content.js`. When the title or employer changes, update them, and also update `tools/og-image.html`. SVG gradient ids are prefixed per drawing (`h-`, `m-`) because every drawing lands in the same document.
 - **`style.css`.**
-  - **Dark tokens are duplicated:** once in `@media (prefers-color-scheme: dark)` and once in `:root[data-theme="dark"]`. Keep the two in sync.
-  - The `@media print` block at the end turns the page into a black-on-white résumé on one page. It hides the nav, the footer, the intro links, the background, the flow animation and the key figures, flattens the tiles, and moves `#contact` up under the intro. After changing the content, check that it still fits on one page.
+  - One light theme; tokens on `:root`. Measured contrast is in `DESIGN.md`: use `--accent` only for large figures and graphics, `--accent-ink` for small text.
+  - The `@media print` block at the end turns the page into a black-on-white one-page résumé (the "Résumé" nav button prints). It shows the hidden `.print-head` and each card's `.case-full`, and hides all artwork and the contact section. After changing the content, check that it still fits on one page.
 - **`404.html`** uses root-absolute paths (`/style.css`, `/`) because GitHub Pages serves it at any depth.
 - **`assets/og-image.png`** is generated from `tools/og-image.html` with headless Chrome. Use **absolute** paths: a relative `--screenshot` path fails silently on this machine.
 
